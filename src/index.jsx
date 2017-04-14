@@ -18,9 +18,12 @@ class App extends React.Component {
         displayedAdsIds:[],
         products:[],
     }
+    this._handleScroll  = this._handleScroll.bind(this);
+    window.addEventListener("scroll", this._handleScroll);
   }
   componentDidMount(){
     this.getProducts();
+    
   }
   getProducts(){
     let page = this.state.page; 
@@ -54,8 +57,16 @@ class App extends React.Component {
     .catch(function (error) {
     });
   }
-  _handleScrollEvent(){
-
+  _handleScroll(){
+    let currentPosY = window.scrollY; 
+    let viewScreen = window.innerHeight; 
+    let documentHeight = document.body.offsetHeight;
+    let scrolledY = viewScreen + currentPosY + 10 ; //padding cheat
+    console.log('scrolledY = ' + scrolledY);
+    console.log('documentHeight = ' + documentHeight);
+    if(scrolledY >= documentHeight){
+      this.getProducts();
+    }
   }
   _getNextAds(){
     var id = null;
@@ -72,7 +83,7 @@ class App extends React.Component {
     console.log('render index');
     let items = this.state.products;
     return (
-      <div>
+      <div className="products-root">
         <Sort />
         <Products items={items} />
       </div>
