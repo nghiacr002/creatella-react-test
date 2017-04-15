@@ -6,9 +6,9 @@
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-/******/
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -10266,9 +10266,19 @@ var Products = function (_React$Component) {
       var products = this.props.items;
       var timeagoInstance = (0, _timeago2.default)();
       var items = products.map(function (product) {
-        if (product.mode && product.mode == "ads") {
-          return _react2.default.createElement(_ads2.default, { id: product.id, key: product.id });
+        if (product.mode) {
+          if (product.mode == "ads") {
+            return _react2.default.createElement(_ads2.default, { id: product.id, key: product.id });
+          }
+          if (product.mode == "eol") {
+            return _react2.default.createElement(
+              'div',
+              { className: 'col-xs-12 eol' },
+              '~ end of catalogue ~'
+            );
+          }
         }
+
         var style = {
           fontSize: product.size
         };
@@ -10276,23 +10286,27 @@ var Products = function (_React$Component) {
         var product_price = _utils2.default.currency2String(product.price, "$", 2);
         return _react2.default.createElement(
           'div',
-          { className: 'col-xs-2 product-item', key: product.id },
+          { className: 'col-xs-3', key: product.id },
           _react2.default.createElement(
             'div',
-            { className: 'product-face', style: style },
-            product.face
-          ),
-          _react2.default.createElement(
-            'div',
-            { className: 'product-time' },
-            ' Date: ',
-            product_time
-          ),
-          _react2.default.createElement(
-            'div',
-            { className: 'product-price' },
-            ' Price : ',
-            product_price
+            { className: 'product-item' },
+            _react2.default.createElement(
+              'div',
+              { className: 'product-face', style: style },
+              product.face
+            ),
+            _react2.default.createElement(
+              'div',
+              { className: 'product-time' },
+              ' Date: ',
+              product_time
+            ),
+            _react2.default.createElement(
+              'div',
+              { className: 'product-price' },
+              ' Price : ',
+              product_price
+            )
           )
         );
       });
@@ -10336,7 +10350,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var options = ['size', 'price', 'id'];
+var options = ['id', 'size', 'price'];
 
 var Sort = function (_React$Component) {
   _inherits(Sort, _React$Component);
@@ -10344,12 +10358,20 @@ var Sort = function (_React$Component) {
   function Sort(props) {
     _classCallCheck(this, Sort);
 
-    return _possibleConstructorReturn(this, (Sort.__proto__ || Object.getPrototypeOf(Sort)).call(this, props));
+    var _this = _possibleConstructorReturn(this, (Sort.__proto__ || Object.getPrototypeOf(Sort)).call(this, props));
+
+    _this.onChangeSort = _this.onChangeSort.bind(_this);
+    return _this;
   }
 
   _createClass(Sort, [{
     key: 'componentDidAmount',
     value: function componentDidAmount() {}
+  }, {
+    key: 'onChangeSort',
+    value: function onChangeSort(e) {
+      this.props.onChangeSort(e.target.value);
+    }
   }, {
     key: 'render',
     value: function render() {
@@ -10362,9 +10384,13 @@ var Sort = function (_React$Component) {
         );
       });
       return _react2.default.createElement(
-        'select',
-        null,
-        listItems
+        'div',
+        { className: 'product-sorting-holder' },
+        _react2.default.createElement(
+          'select',
+          { className: 'product-sorting form-control', onChange: this.onChangeSort },
+          listItems
+        )
       );
     }
   }]);
@@ -11251,7 +11277,15 @@ var Ads = function (_React$Component) {
     key: 'render',
     value: function render() {
       var url = "ads/?r=" + this.props.id;
-      return _react2.default.createElement('img', { className: 'ad', src: url });
+      return _react2.default.createElement(
+        'div',
+        { className: 'col-xs-3 ' },
+        _react2.default.createElement(
+          'div',
+          { className: 'product-item item-ads' },
+          _react2.default.createElement('img', { className: 'ad', src: url })
+        )
+      );
     }
   }]);
 
@@ -11283,6 +11317,10 @@ var _sort = __webpack_require__(91);
 
 var _sort2 = _interopRequireDefault(_sort);
 
+var _loading = __webpack_require__(217);
+
+var _loading2 = _interopRequireDefault(_loading);
+
 var _axios = __webpack_require__(89);
 
 var _axios2 = _interopRequireDefault(_axios);
@@ -11306,17 +11344,16 @@ var App = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
     _this.state = {
-      sort: {
-        by: 'size',
-        mode: 'ASC'
-      },
+      sort: 'id',
       page: 0,
       limit: 20,
       isFetching: false,
       displayedAdsIds: [],
-      products: []
+      products: [],
+      EOL: false
     };
     _this._handleScroll = _this._handleScroll.bind(_this);
+    _this.onChangeSort = _this.onChangeSort.bind(_this);
     window.addEventListener("scroll", _this._handleScroll);
     return _this;
   }
@@ -11329,28 +11366,43 @@ var App = function (_React$Component) {
   }, {
     key: 'getProducts',
     value: function getProducts() {
+      this.setState({
+        isFetching: true
+      });
       var page = this.state.page;
       page++;
       var limit = this.state.limit;
+      var sort = this.state.sort;
       var that = this;
       _axios2.default.get('/api/products', {
         params: {
           _page: page,
-          _limit: limit
+          _limit: limit,
+          _sort: sort
         }
       }).then(function (response) {
-
         if (parseInt(response.status) == RESPONSE_OK) {
           var adsID = that._getNextAds();
           var products = response.data;
-          products.push({
-            'mode': 'ads',
-            'id': adsID
-          });
+          var isEOL = false;
+          if (products.length > 0) {
+            products.push({
+              'mode': 'ads',
+              'id': adsID
+            });
+          } else {
+            products.push({
+              'mode': 'eol',
+              'id': 'eolID-' + new Date().getTime()
+            });
+            isEOL = true;
+          }
           that.setState({
             page: page,
             products: that.state.products.concat(products),
-            displayedAdsIds: that.state.displayedAdsIds.concat(adsID)
+            displayedAdsIds: that.state.displayedAdsIds.concat(adsID),
+            isFetching: false,
+            EOL: isEOL
           });
         } else {
           alert(response.statusText);
@@ -11358,15 +11410,30 @@ var App = function (_React$Component) {
       }).catch(function (error) {});
     }
   }, {
+    key: 'onChangeSort',
+    value: function onChangeSort(sort) {
+      //let page = this.state.page; 
+      //page--;
+      this.setState({
+        sort: sort
+      });
+      //this.getProducts();
+    }
+  }, {
     key: '_handleScroll',
     value: function _handleScroll() {
+      if (this.state.isFetching || this.state.isEOL) {
+        return;
+      }
       var currentPosY = window.scrollY;
       var viewScreen = window.innerHeight;
-      var documentHeight = document.body.offsetHeight;
-      var scrolledY = viewScreen + currentPosY + 10; //padding cheat
-      console.log('scrolledY = ' + scrolledY);
-      console.log('documentHeight = ' + documentHeight);
+      var body = document.body;
+      var html = document.documentElement;
+      //get document height
+      var documentHeight = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+      var scrolledY = viewScreen + currentPosY; //padding cheat
       if (scrolledY >= documentHeight) {
+        console.log('get products scrolledY = ' + scrolledY + ' & documentHeight = ' + documentHeight);
         this.getProducts();
       }
     }
@@ -11386,13 +11453,14 @@ var App = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      console.log('render index');
+
       var items = this.state.products;
       return _react2.default.createElement(
         'div',
         { className: 'products-root' },
-        _react2.default.createElement(_sort2.default, null),
-        _react2.default.createElement(_products2.default, { items: items })
+        _react2.default.createElement(_sort2.default, { onChangeSort: this.onChangeSort }),
+        _react2.default.createElement(_products2.default, { items: items }),
+        _react2.default.createElement(_loading2.default, { visible: true })
       );
     }
   }]);
@@ -25927,6 +25995,61 @@ try {
 
 module.exports = g;
 
+
+/***/ }),
+/* 217 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(27);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(26);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Loading = function (_React$Component) {
+    _inherits(Loading, _React$Component);
+
+    function Loading(props) {
+        _classCallCheck(this, Loading);
+
+        return _possibleConstructorReturn(this, (Loading.__proto__ || Object.getPrototypeOf(Loading)).call(this, props));
+    }
+
+    _createClass(Loading, [{
+        key: 'render',
+        value: function render() {
+            if (!this.props.visible) {
+                return null;
+            }
+            return _react2.default.createElement(
+                'div',
+                { className: 'loading-holder' },
+                _react2.default.createElement('div', { className: 'loader' })
+            );
+        }
+    }]);
+
+    return Loading;
+}(_react2.default.Component);
+
+exports.default = Loading;
 
 /***/ })
 /******/ ]);

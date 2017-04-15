@@ -7,7 +7,13 @@ class Ads extends React.Component {
  
   render () {
       let url = "ads/?r=" + this.props.id;
-       return <img className="ad" src={url}/>;
+       return (
+         <div className="col-xs-3 ">
+          <div className="product-item item-ads">
+           <img className="ad" src={url}/>
+           </div>
+         </div>
+       );
   }
 }
 export default Ads;
