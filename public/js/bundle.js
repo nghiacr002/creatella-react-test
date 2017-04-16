@@ -10286,10 +10286,6 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactDom = __webpack_require__(21);
 
-var _timeago = __webpack_require__(216);
-
-var _timeago2 = _interopRequireDefault(_timeago);
-
 var _utils = __webpack_require__(112);
 
 var _utils2 = _interopRequireDefault(_utils);
@@ -10319,7 +10315,7 @@ var Products = function (_React$Component) {
     key: 'render',
     value: function render() {
       var products = this.props.items;
-      var timeagoInstance = (0, _timeago2.default)();
+
       var items = products.map(function (product) {
         if (product.mode) {
           if (product.mode == "ads") {
@@ -10337,7 +10333,7 @@ var Products = function (_React$Component) {
         var style = {
           fontSize: product.size
         };
-        var product_time = timeagoInstance.format(product.date);
+        var product_time = _utils2.default.date2String(product.date);
         var product_price = _utils2.default.currency2String(product.price, "$", 2);
         return _react2.default.createElement(
           'div',
@@ -11534,6 +11530,12 @@ var App = function (_React$Component) {
 "use strict";
 
 
+var _timeago = __webpack_require__(216);
+
+var _timeago2 = _interopRequireDefault(_timeago);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 module.exports = {
     currency2String: function currency2String(value, symbol, decimal) {
         if (typeof decimal == 'undefined') {
@@ -11545,6 +11547,26 @@ module.exports = {
             convert = value / decimal;
         }
         return symbol + "" + convert;
+    },
+    date2String: function date2String(date, limit) {
+        var formatedTime = date;
+        try {
+            formatedTime = new Date(date).getTime();
+            console.log(date + ' ==> formatedtime = ' + formatedTime);
+        } catch (e) {
+            console.log('error');
+            console.log(e);
+            return date;
+        }
+        if (typeof limit == "undefined") {
+            limit = 7 * 60 * 60 * 24 * 1000; //mili seconds
+        }
+        var currentTime = new Date().getTime();
+        if (currentTime - formatedTime >= limit) {
+            return date;
+        }
+        var timeagoInstance = (0, _timeago2.default)();
+        return timeagoInstance.format(date);
     }
 };
 

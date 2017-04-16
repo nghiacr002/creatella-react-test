@@ -1,12 +1,11 @@
 import React from 'react';
 import {render} from 'react-dom';
-import timeago from 'timeago.js';
 import UTILS from './utils.jsx';
 import Ads from './ads.jsx';
 class Products extends React.Component {
   render () {
     var products = this.props.items;
-    var timeagoInstance = timeago();
+   
     var items = products.map((product) => {
       if(product.mode ){
          if( product.mode == "ads"){
@@ -20,7 +19,7 @@ class Products extends React.Component {
       let style = {
           fontSize: product.size
       };
-      let product_time = timeagoInstance.format(product.date);
+      let product_time = UTILS.date2String(product.date);
       let product_price = UTILS.currency2String(product.price, "$" , 2);
       return (
         <div className="col-xs-3" key={product.id}>
