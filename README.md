@@ -35,6 +35,13 @@ Products API
 
 FAQ
 ----
+### How do I install the app ? 
+Start with `npm install` to install all of dependencies:
+- Webpack
+- ReactJS
+- Babel
+- TimeoutJs
+- Axios
 
 ### How do I start the app?
 
