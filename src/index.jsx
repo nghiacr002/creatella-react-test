@@ -76,9 +76,10 @@ class App extends React.Component {
     //page--;
     this.setState({
       sort:sort,
-      //page:page
+      page:0,
+      products:[]
     });
-    //this.getProducts();
+    this.getProducts();
   }
   _handleScroll(){
     if(this.state.isFetching || this.state.isEOL){
