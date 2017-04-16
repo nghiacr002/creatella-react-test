@@ -11385,6 +11385,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var RESPONSE_OK = 200;
+var USER_TIMEOUT = 3000;
 
 var App = function (_React$Component) {
   _inherits(App, _React$Component);
@@ -11401,10 +11402,18 @@ var App = function (_React$Component) {
       isFetching: false,
       displayedAdsIds: [],
       products: [],
-      EOL: false
+      EOL: false,
+      prefetchData: {
+        page: 0,
+        products: [],
+        ads: 0,
+        isEOL: false
+      }
     };
     _this._handleScroll = _this._handleScroll.bind(_this);
+    _this._getProducts = _this._getProducts.bind(_this);
     _this.onChangeSort = _this.onChangeSort.bind(_this);
+    _this._prefetch = _this._prefetch.bind(_this);
     window.addEventListener("scroll", _this._handleScroll);
     return _this;
   }
@@ -11417,14 +11426,69 @@ var App = function (_React$Component) {
   }, {
     key: 'getProducts',
     value: function getProducts() {
+
+      var prefetchData = this.state.prefetchData;
+
+      if (prefetchData.products.length > 0) {
+        this.setState({
+          products: this.state.products.concat(prefetchData.products),
+          page: prefetchData.page,
+          displayedAdsIds: this.state.displayedAdsIds.concat(prefetchData.ads),
+          isFetching: false,
+          EOL: prefetchData.isEOL,
+          prefetchData: {
+            page: 0,
+            products: [],
+            ads: 0,
+            isEOL: false
+          }
+        });
+        this.timer = setTimeout(this._prefetch, USER_TIMEOUT);
+        return;
+      }
       this.setState({
         isFetching: true
       });
-      var page = this.state.page;
-      page++;
-      var limit = this.state.limit;
-      var sort = this.state.sort;
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
       var that = this;
+      this._getProducts(function (result) {
+        that.setState({
+          page: result.page,
+          products: that.state.products.concat(result.products),
+          displayedAdsIds: that.state.displayedAdsIds.concat(result.displayedAdsIds),
+          isFetching: result.isFetching,
+          EOL: result.isEOL
+        });
+        that.timer = setTimeout(that._prefetch, USER_TIMEOUT);
+      });
+    }
+  }, {
+    key: 'onChangeSort',
+    value: function onChangeSort(sort) {
+      this.setState({
+        sort: sort,
+        page: 0,
+        products: [],
+        prefetchData: {
+          products: [],
+          page: 0,
+          ads: 0
+        }
+      });
+      this.getProducts();
+    }
+  }, {
+    key: '_getProducts',
+    value: function _getProducts(cb) {
+      var that = this;
+      var page = that.state.page;
+      page++;
+      var limit = that.state.limit;
+      var sort = that.state.sort;
+      console.log('go here' + page + '& limit' + limit + '&sort = ' + sort);
+
       _axios2.default.get('/api/products', {
         params: {
           _page: page,
@@ -11448,29 +11512,34 @@ var App = function (_React$Component) {
             });
             isEOL = true;
           }
-          that.setState({
+          cb({
             page: page,
-            products: that.state.products.concat(products),
-            displayedAdsIds: that.state.displayedAdsIds.concat(adsID),
+            products: products,
+            displayedAdsIds: adsID,
             isFetching: false,
             EOL: isEOL
           });
         } else {
           alert(response.statusText);
         }
-      }).catch(function (error) {});
+      }).catch(function (error) {
+        console.log('errr');
+        console.log(error);
+      });
     }
   }, {
-    key: 'onChangeSort',
-    value: function onChangeSort(sort) {
-      //let page = this.state.page; 
-      //page--;
-      this.setState({
-        sort: sort,
-        page: 0,
-        products: []
+    key: '_prefetch',
+    value: function _prefetch() {
+      if (this.state.isFetching || this.state.isEOL || this.state.prefetchData.products.length > 0) {
+        return;
+      }
+      console.log('prefetching data');
+      var that = this;
+      this._getProducts(function (result) {
+        that.setState({
+          prefetchData: result
+        });
       });
-      this.getProducts();
     }
   }, {
     key: '_handleScroll',
@@ -11552,7 +11621,7 @@ module.exports = {
         var formatedTime = date;
         try {
             formatedTime = new Date(date).getTime();
-            console.log(date + ' ==> formatedtime = ' + formatedTime);
+            //console.log(date + ' ==> formatedtime = ' + formatedTime)
         } catch (e) {
             console.log('error');
             console.log(e);

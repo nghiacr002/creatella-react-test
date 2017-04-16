@@ -15,7 +15,7 @@ module.exports = {
         var formatedTime = date; 
         try{
             formatedTime = (new Date(date)).getTime(); 
-            console.log(date + ' ==> formatedtime = ' + formatedTime)
+            //console.log(date + ' ==> formatedtime = ' + formatedTime)
         }catch(e){
             console.log('error');
             console.log(e);
