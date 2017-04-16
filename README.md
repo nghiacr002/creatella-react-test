@@ -40,7 +40,7 @@ Start with `npm install` to install all of dependencies:
 - Webpack
 - ReactJS
 - Babel
-- TimeoutJs
+- TimeagoJS
 - Axios
 
 ### How do I start the app?
