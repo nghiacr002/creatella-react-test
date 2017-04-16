@@ -11474,7 +11474,8 @@ var App = function (_React$Component) {
         prefetchData: {
           products: [],
           page: 0,
-          ads: 0
+          ads: 0,
+          isEOL: false
         }
       });
       this.getProducts();

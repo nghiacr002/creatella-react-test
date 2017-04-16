@@ -2,7 +2,7 @@
     padding:0 5px;
 }
 .product-item{
-    min-height: 160px; 
+    min-height: 180px; 
     border:1px solid #dfdfdf;
     margin-bottom: 10px;
     padding:7px;
@@ -10,7 +10,7 @@
 .product-face {
     text-align: center;
     padding: 7px 11px;
-    height: 80px;
+    height: 100px;
 }
 .item-ads{
     padding:0;
