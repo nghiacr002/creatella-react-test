@@ -42,6 +42,11 @@ Start with `npm install` to install all of dependencies:
 - Babel
 - TimeagoJS
 - Axios
+### How do I build the app?
+- To view as live reload
+./node_modules/.bin/webpack --watch
+- To build compress ( minify ) version of JS bundle
+./node_modules/.bin/webpack -p
 
 ### How do I start the app?
 
